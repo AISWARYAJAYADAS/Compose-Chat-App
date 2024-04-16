@@ -3,7 +3,6 @@ package com.example.composechatapp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
@@ -37,8 +36,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            //ChatAppNavigation()
-           // Text(text = "ghhh")
             ChatAppNavigation()
 
         }
@@ -48,6 +45,7 @@ class MainActivity : ComponentActivity() {
     fun ChatAppNavigation() {
         val navController = rememberNavController()
         val vm = hiltViewModel<ChatViewModel>()
+        val chatListViewModel = hiltViewModel<ChatListViewModel>()
         NavHost(
             navController = navController,
             startDestination = DestinationScreen.SignUp.route
@@ -59,7 +57,11 @@ class MainActivity : ComponentActivity() {
                 LoginScreen(navController = navController, viewModel = vm)
             }
             composable(DestinationScreen.ChatList.route) {
-                ChatListScreen(navController = navController, viewModel = vm)
+                ChatListScreen(
+                    navController = navController,
+                    chatListViewModel = chatListViewModel,
+                    viewModel = vm
+                )
             }
             composable(DestinationScreen.StatusList.route) {
                 StatusScreen(navController = navController, viewModel = vm)
@@ -67,8 +69,6 @@ class MainActivity : ComponentActivity() {
             composable(DestinationScreen.Profile.route) {
                 ProfileScreen(navController = navController, viewModel = vm)
             }
-
-
 
 
         }

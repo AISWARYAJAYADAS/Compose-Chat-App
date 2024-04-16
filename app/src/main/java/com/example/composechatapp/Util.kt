@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,7 +24,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -108,6 +111,17 @@ fun CheckSignedIn(viewModel: ChatViewModel, navController: NavController) {
             popUpTo(0)
         }
     }
+}
+
+@Composable
+fun TitleText(text : String) {
+    Text(
+        text = text,
+        fontWeight = FontWeight.Bold,
+        fontSize = 35.sp,
+        modifier = Modifier.padding(8.dp)
+    )
+
 }
 
 //fun showToast(context: Context, message: String) {

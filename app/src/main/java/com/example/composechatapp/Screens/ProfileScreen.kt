@@ -39,7 +39,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.composechatapp.ChatViewModel
 import com.example.composechatapp.CommonDivider
@@ -107,7 +109,6 @@ fun ProfileScreen(
         }
     }
 }
-
 
 @Composable
 fun ProfileContent(
@@ -182,19 +183,111 @@ fun ProfileContent(
                 .padding(16.dp),
             horizontalArrangement = Arrangement.Center
         ) {
-
             Text(
                 text = "Log Out",
                 modifier = Modifier
                     .clickable { onLogOut() }
                     .padding(8.dp),
-                color = Color(0xFF009688), // Set text color to 0xFF009688
-                style = MaterialTheme.typography.bodyLarge
+                color = Color(0xFF009688),
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
             )
-
         }
     }
 }
+
+
+
+//@Composable
+//fun ProfileContent(
+//    modifier: Modifier,
+//    viewModel: ChatViewModel,
+//    onBack: () -> Unit,
+//    onSave: () -> Unit,
+//    name: String,
+//    number: String,
+//    onNameChange: (String) -> Unit,
+//    onNumberChange: (String) -> Unit,
+//    onLogOut: () -> Unit
+//) {
+//    val imageUrl = viewModel.userData.value?.imageUrl
+//
+//    Column(modifier = modifier.verticalScroll(rememberScrollState())) {
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(8.dp),
+//            horizontalArrangement = Arrangement.SpaceBetween
+//        ) {
+//            Text(
+//                text = "Back",
+//                modifier = Modifier.clickable { onBack.invoke() },
+//                color = Color(0xFF009688),
+//                style = MaterialTheme.typography.bodyMedium
+//            )
+//            Text(
+//                text = "Save",
+//                modifier = Modifier.clickable { onSave.invoke() },
+//                color = Color(0xFF009688),
+//                style = MaterialTheme.typography.bodyMedium
+//            )
+//        }
+//        CommonDivider()
+//        ProfileImage(imageUrl = imageUrl, viewModel = viewModel)
+//        CommonDivider()
+//
+//        OutlinedTextField(
+//            value = name,
+//            onValueChange = { onNameChange(it) },
+//            label = { Text(text = "Name") },
+//            modifier = Modifier
+//                .padding(8.dp)
+//                .fillMaxWidth(),
+//            textStyle = TextStyle(color = Color(0xFF009688)),
+//            singleLine = true,
+////            leadingIcon = {
+////                Icon(Icons.Filled.Person, contentDescription = "Name", modifier = Modifier.size(18.dp))
+////            }
+//        )
+//
+//        OutlinedTextField(
+//            value = number,
+//            onValueChange = { onNumberChange(it) },
+//            label = { Text(text = "Number") },
+//            modifier = Modifier
+//                .padding(8.dp)
+//                .fillMaxWidth(),
+//            textStyle = TextStyle(color = Color(0xFF009688)),
+//            singleLine = true,
+////            leadingIcon = {
+////                Icon(Icons.Filled.Phone, contentDescription = "Number", modifier = Modifier.size(18.dp))
+////            }
+//        )
+//
+//        CommonDivider()
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(16.dp),
+//            horizontalArrangement = Arrangement.Center
+//        ) {
+//
+//            Text(
+//                text = "Log Out",
+//                modifier = Modifier
+//                    .clickable { onLogOut() }
+//                    .padding(8.dp),
+//                color = Color(0xFF009688), // Set text color to 0xFF009688
+//                style = MaterialTheme.typography.bodyLarge,
+//                fontSize = 24.sp,
+//                fontWeight = FontWeight.Bold
+//            )
+//
+//        }
+//    }
+//}
 
 
 @Composable
@@ -230,7 +323,7 @@ fun ProfileImage(imageUrl: String?, viewModel: ChatViewModel) {
                 CommonImage(
                     data = imageUrl,
                     placeholder = painterResource(R.drawable.placeholder), // Placeholder image
-                    error = painterResource(R.drawable.user), // Error image
+                    error = painterResource(R.drawable.placeholder), // Error image
                     contentDescription = null, // Description of the content for accessibility
                     contentScale = ContentScale.FillBounds, // Scale type for the image content
                     modifier = Modifier.fillMaxSize() // Modifier for additional customization

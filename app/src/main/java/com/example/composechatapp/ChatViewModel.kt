@@ -4,15 +4,21 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.example.composechatapp.data.CHATS
+import com.example.composechatapp.data.ChatData
+import com.example.composechatapp.data.ChatUser
 import com.example.composechatapp.data.Event
 import com.example.composechatapp.data.USER_NODE
 import com.example.composechatapp.data.UserData
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
+import com.google.firebase.firestore.toObjects
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -327,7 +333,7 @@ class ChatViewModel @Inject constructor(
 //
 //    }
 
-    private fun handleException(exception: Exception? = null, customMessage: String = "") {
+    fun handleException(exception: Exception? = null, customMessage: String = "") {
         Log.e("Compose Chat App", "Compose Chat App Exception : ", exception)
         exception?.printStackTrace()
         val errorMessage = exception?.localizedMessage ?: ""
@@ -343,6 +349,69 @@ class ChatViewModel @Inject constructor(
         signIn.value = false
         userData.value = null
         eventMutableState.value = Event("Logged Out")
+    }
+
+
+    // Chat Screen
+
+    var inProcessChats = mutableStateOf(false)
+    var chats = mutableStateOf<List<ChatData>>(listOf())
+
+    fun onAddChat(number: String) {
+        if (number.isEmpty() or !number.isDigitsOnly()) {
+            handleException(customMessage = "Number Must be contain digits only")
+        } else {
+            db.collection(CHATS).where(
+                Filter.or(
+                    Filter.and(
+                        Filter.equalTo("user1.number", number),
+                        Filter.equalTo("user2.number", userData.value?.number)
+                    ),
+                    Filter.and(
+                        Filter.equalTo("user1.number", userData.value?.number),
+                        Filter.equalTo("user2.number", number)
+                    )
+
+                )
+            ).get().addOnSuccessListener {
+                if (it.isEmpty) {
+                    db.collection(USER_NODE).whereEqualTo("number", number)
+                        .get().addOnSuccessListener {
+                            if (it.isEmpty) {
+                                handleException(customMessage = "Number not Found")
+                            } else {
+                                val chatPartner = it.toObjects<UserData>()[0]
+                                val id = db.collection(CHATS).document().id
+                                val chat = ChatData(
+                                    chatId = id,
+                                    ChatUser(
+                                        userData.value?.userId,
+                                        userData.value?.name,
+                                        userData.value?.imageUrl,
+                                        userData.value?.number
+
+                                    ),
+                                    ChatUser(
+                                        chatPartner.userId,
+                                        chatPartner.name,
+                                        chatPartner.imageUrl,
+                                        chatPartner.number
+                                    )
+                                )
+
+                                db.collection(CHATS).document(id).set(chat)
+
+                            }
+                        }
+                        .addOnFailureListener {
+                            handleException(it)
+                        }
+                } else {
+                    handleException(customMessage = "Chat already exists")
+                }
+            }
+        }
+
     }
 
 
