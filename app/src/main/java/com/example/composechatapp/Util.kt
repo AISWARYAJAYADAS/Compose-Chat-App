@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -24,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -123,6 +126,41 @@ fun TitleText(text : String) {
     )
 
 }
+
+@Composable
+fun CommonRow(
+    imageUrl : String?,
+    name : String?,
+    onItemClick : () -> Unit
+) {
+
+    Row (
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(75.dp)
+            .clickable { onItemClick.invoke() },
+        verticalAlignment = Alignment.CenterVertically
+    ){
+
+        CommonImage(
+            data = imageUrl,
+            placeholder = painterResource(id = R.drawable.placeholder),
+            error = painterResource(id = R.drawable.placeholder),
+            contentDescription = null,
+            modifier = Modifier
+                .padding(8.dp)
+                .size(50.dp)
+                .clip(CircleShape)
+                .background(Color.Red) ,
+                contentScale = ContentScale.Crop
+        )
+
+        Text(text = name ?: "---",
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(start = 4.dp))
+        }
+    }
+
 
 //fun showToast(context: Context, message: String) {
 //    // Show Toast message

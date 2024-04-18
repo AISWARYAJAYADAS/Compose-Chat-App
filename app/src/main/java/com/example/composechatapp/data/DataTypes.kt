@@ -26,3 +26,9 @@ data class ChatData(
     val user1 : ChatUser = ChatUser(),
     val user2 : ChatUser = ChatUser()
 )
+
+data class Message(
+    var sendBy : String? = "",
+    val message : String? = "",
+    val timeStamp : String? = ""
+)

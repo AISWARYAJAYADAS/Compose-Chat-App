@@ -1,22 +1,25 @@
 package com.example.composechatapp
 
 import android.content.Context
+import android.icu.util.Calendar
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
 import com.example.composechatapp.data.CHATS
 import com.example.composechatapp.data.ChatData
 import com.example.composechatapp.data.ChatUser
 import com.example.composechatapp.data.Event
+import com.example.composechatapp.data.MESSAGE
+import com.example.composechatapp.data.Message
 import com.example.composechatapp.data.USER_NODE
 import com.example.composechatapp.data.UserData
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.toObject
 import com.google.firebase.firestore.toObjects
 import com.google.firebase.storage.FirebaseStorage
@@ -44,9 +47,12 @@ class ChatViewModel @Inject constructor(
         val currentUser = auth.currentUser
         signIn.value = currentUser != null
         currentUser?.uid?.let {
-            getUserData(it)
+            viewModelScope.launch {
+                getUserData(it)
+            }
         }
     }
+
 
     fun loginIn(email: String, password: String) {
         if (email.isEmpty() or password.isEmpty()) {
@@ -68,55 +74,6 @@ class ChatViewModel @Inject constructor(
             }
         }
     }
-
-
-//    fun loginIn(email: String, password: String) {
-//        if (email.isEmpty() or password.isEmpty()) {
-//            handleException(customMessage = "Please Fill the all fields")
-//            return
-//        } else {
-//            inProgress.value = true
-//            auth.signInWithEmailAndPassword(email, password)
-//                .addOnCompleteListener {
-//
-//                    if (it.isSuccessful) {
-//                        signIn.value = true
-//                        inProgress.value = false
-//                        auth.currentUser?.uid?.let {
-//                            getUserData(it)
-//                        }
-//                    } else {
-//                        handleException(exception = it.exception, customMessage = "Login Failed")
-//                    }
-//                }
-//        }
-//
-//
-//    }
-
-//    fun uploadProfileImage(uri: Uri) {
-//        uploadImage(uri) {
-//            createOrUpdateProfile(imageUrl = it.toString())
-//        }
-//
-//    }
-
-//    private fun uploadImage(uri: Uri, onSuccess: (uri: Uri) -> Unit) {
-//        inProgress.value = true
-//        val storageRef = storage.reference
-//        val uuid = UUID.randomUUID()
-//        val imageRef = storageRef.child("images/$uuid")
-//        val uploadTask = imageRef.putFile(uri)
-//        uploadTask.addOnSuccessListener {
-//            val result = it.metadata?.reference?.downloadUrl
-//
-//            result?.addOnSuccessListener(onSuccess)
-//            inProgress.value = false
-//        }
-//            .addOnFailureListener {
-//                handleException(it)
-//            }
-//    }
 
     private suspend fun uploadImage(uri: Uri): Uri {
         return withContext(Dispatchers.IO) {
@@ -169,36 +126,6 @@ class ChatViewModel @Inject constructor(
     }
 
 
-//    fun signUp(name: String, number: String, email: String, password: String) {
-//
-//        inProgress.value = true
-//        if (name.isEmpty() or number.isEmpty() or email.isEmpty()) {
-//            handleException(customMessage = "Please Fill All Fields")
-//            return
-//        }
-//
-//        inProgress.value = true
-//        db.collection(USER_NODE).whereEqualTo("number", number).get().addOnSuccessListener {
-//
-//            if (it.isEmpty) {
-//                auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener {
-//                    if (it.isSuccessful) {
-//                        signIn.value = true
-//                        createOrUpdateProfile(name, number)
-//                        Log.d("Test", "signup : user Logged IN")
-//                    } else {
-//                        handleException(it.exception, customMessage = "Sign Up Failed")
-//
-//                    }
-//                }
-//            } else {
-//                handleException(customMessage = "Number Already Exists")
-//                inProgress.value = false
-//            }
-//        }
-//
-//    }
-
     fun createOrUpdateProfile(
         name: String? = null,
         number: String? = null,
@@ -241,97 +168,27 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-
-//    fun createOrUpdateProfile(
-//        name: String? = null,
-//        number: String? = null,
-//        imageUrl: String? = null
-//    ) {
-//        val uid = auth.currentUser?.uid
-//
-//        uid?.let { userId ->
-//            inProgress.value = true
-//
-//            // Construct UserData object with updated fields
-//            val updatedUserData = UserData(
-//                userId = userId,
-//                name = name ?: userData.value?.name,
-//                number = number ?: userData.value?.number,
-//                imageUrl = imageUrl ?: userData.value?.imageUrl
-//            )
-//
-//            db.collection(USER_NODE).document(userId).get()
-//                .addOnSuccessListener { documentSnapshot ->
-//                    if (documentSnapshot.exists()) {
-//                        // Update user data if the document exists
-//                        val fieldsToUpdate = updatedUserData.toMap()
-//                            .filterValues { it != null } // Filter out null values
-//                        db.collection(USER_NODE).document(userId).update(fieldsToUpdate)
-//                            .addOnSuccessListener {
-//                                // Data updated successfully
-//                                inProgress.value = false
-//                                getUserData(userId)
-//                            }.addOnFailureListener { exception ->
-//                                // Failed to update data
-//                                handleException(exception, "Failed to update user data")
-//                            }
-//                    } else {
-//                        // Create new user data if the document doesn't exist
-//                        db.collection(USER_NODE).document(userId).set(updatedUserData)
-//                            .addOnSuccessListener {
-//                                // New user data created successfully
-//                                inProgress.value = false
-//                                getUserData(userId)
-//                            }.addOnFailureListener { exception ->
-//                                // Failed to create new user data
-//                                handleException(exception, "Failed to create user data")
-//                            }
-//                    }
-//                }.addOnFailureListener { exception ->
-//                    // Failed to retrieve user data
-//                    handleException(exception, "Cannot Retrieve User")
-//                }
-//        }
-//    }
-
-    private fun getUserData(uid: String) {
+    private suspend fun getUserData(uid: String) {
         inProgress.value = true
-        viewModelScope.launch {
-            try {
-                val documentSnapshot = db.collection(USER_NODE)
-                    .document(uid)
-                    .get()
-                    .await()
+        try {
+            val documentSnapshot = db.collection(USER_NODE)
+                .document(uid)
+                .get()
+                .await()
 
-                if (documentSnapshot.exists()) {
-                    val user = documentSnapshot.toObject<UserData>()
-                    userData.value = user
-                } else {
-                    userData.value = null // No user found
-                }
-            } catch (e: Exception) {
-                handleException(e, "Cannot Retrieve User")
-            } finally {
-                inProgress.value = false
+            if (documentSnapshot.exists()) {
+                val user = documentSnapshot.toObject<UserData>()
+                userData.value = user
+                populateChats() // Call populateChats() after userData is updated
+            } else {
+                userData.value = null // No user found
             }
+        } catch (e: Exception) {
+            handleException(e, "Cannot Retrieve User")
+        } finally {
+            inProgress.value = false
         }
     }
-
-
-//    private fun getUserData(uid: String) {
-//        inProgress.value = true
-//        db.collection(USER_NODE).document(uid).addSnapshotListener { value, error ->
-//            if (error != null) {
-//                handleException(error, "Cannot Retrieve User")
-//            }
-//            if (value != null) {
-//                var user = value.toObject<UserData>()
-//                userData.value = user
-//                inProgress.value = false
-//            }
-//        }
-//
-//    }
 
     fun handleException(exception: Exception? = null, customMessage: String = "") {
         Log.e("Compose Chat App", "Compose Chat App Exception : ", exception)
@@ -348,6 +205,8 @@ class ChatViewModel @Inject constructor(
         auth.signOut()
         signIn.value = false
         userData.value = null
+        depopulateMessage()
+        currentChatMessageListener = null
         eventMutableState.value = Event("Logged Out")
     }
 
@@ -373,14 +232,14 @@ class ChatViewModel @Inject constructor(
                     )
 
                 )
-            ).get().addOnSuccessListener {
-                if (it.isEmpty) {
+            ).get().addOnSuccessListener { querySnapshot ->
+                if (querySnapshot.isEmpty) {
                     db.collection(USER_NODE).whereEqualTo("number", number)
-                        .get().addOnSuccessListener {
-                            if (it.isEmpty) {
+                        .get().addOnSuccessListener { userQuerySnapshot ->
+                            if (userQuerySnapshot.isEmpty) {
                                 handleException(customMessage = "Number not Found")
                             } else {
-                                val chatPartner = it.toObjects<UserData>()[0]
+                                val chatPartner = userQuerySnapshot.toObjects<UserData>()[0]
                                 val id = db.collection(CHATS).document().id
                                 val chat = ChatData(
                                     chatId = id,
@@ -399,7 +258,14 @@ class ChatViewModel @Inject constructor(
                                     )
                                 )
 
-                                db.collection(CHATS).document(id).set(chat)
+                                db.collection(CHATS).document(id).set(chat).addOnSuccessListener {
+                                    // Update the chats list immediately after adding a new chat
+                                    val updatedChats = chats.value.toMutableList()
+                                    updatedChats.add(chat)
+                                    chats.value = updatedChats.toList()
+                                }.addOnFailureListener {
+                                    handleException(it)
+                                }
 
                             }
                         }
@@ -415,4 +281,72 @@ class ChatViewModel @Inject constructor(
     }
 
 
+    // Populate Chats
+    private suspend fun populateChats() {
+        inProcessChats.value = true
+        try {
+            val querySnapshot = db.collection(CHATS).where(
+                Filter.or(
+                    Filter.equalTo("user1.userId", userData.value?.userId),
+                    Filter.equalTo("user2.userId", userData.value?.userId)
+                )
+            ).get().await()
+
+            val chatList = querySnapshot.documents.mapNotNull {
+                it.toObject<ChatData>()
+            }
+            chats.value = chatList
+        } catch (e: Exception) {
+            handleException(e, "Failed to populate chats")
+        } finally {
+            inProcessChats.value = false
+        }
+    }
+
+    //single chat send reply
+    fun onSendReply(chatID: String, message: String) {
+        val time = Calendar.getInstance().time.toString()
+        val msg = Message(sendBy = userData.value?.userId, message = message, timeStamp = time)
+
+        viewModelScope.launch {
+            try {
+                db.collection(CHATS)
+                    .document(chatID)
+                    .collection(MESSAGE)
+                    .document()
+                    .set(msg)
+                    .await()
+                // Optionally, you can perform any post-operation actions here
+            } catch (e: Exception) {
+                // Handle any exceptions
+                handleException(e, "Failed to send message")
+            }
+        }
+    }
+
+    // populate messages between 2 user
+    val chatMessages = mutableStateOf<List<Message>>(listOf())
+    val inProgressSingleChatMessage = mutableStateOf(false)
+    var currentChatMessageListener: ListenerRegistration? = null
+
+    fun populateMessages(chatId: String) {
+        inProgressSingleChatMessage.value = true
+        currentChatMessageListener = db.collection(CHATS).document(chatId).collection(MESSAGE)
+            .addSnapshotListener { value, error ->
+                if (error != null) {
+                    handleException(error)
+                }
+                if (value != null) {
+                    chatMessages.value = value.documents.mapNotNull {
+                        it.toObject<Message>()
+                    }.sortedBy { it.timeStamp }
+                    inProgressSingleChatMessage.value = false
+                }
+            }
+    }
+
+    fun depopulateMessage() {
+        chatMessages.value = listOf()
+        currentChatMessageListener = null
+    }
 }

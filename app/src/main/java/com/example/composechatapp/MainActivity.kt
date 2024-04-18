@@ -12,6 +12,7 @@ import com.example.composechatapp.Screens.ChatListScreen
 import com.example.composechatapp.Screens.LoginScreen
 import com.example.composechatapp.Screens.ProfileScreen
 import com.example.composechatapp.Screens.SignUpScreen
+import com.example.composechatapp.Screens.SingleChatScreen
 import com.example.composechatapp.Screens.StatusScreen
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -45,7 +46,6 @@ class MainActivity : ComponentActivity() {
     fun ChatAppNavigation() {
         val navController = rememberNavController()
         val vm = hiltViewModel<ChatViewModel>()
-        val chatListViewModel = hiltViewModel<ChatListViewModel>()
         NavHost(
             navController = navController,
             startDestination = DestinationScreen.SignUp.route
@@ -59,10 +59,22 @@ class MainActivity : ComponentActivity() {
             composable(DestinationScreen.ChatList.route) {
                 ChatListScreen(
                     navController = navController,
-                    chatListViewModel = chatListViewModel,
                     viewModel = vm
                 )
             }
+
+
+            composable(DestinationScreen.SingleChat.route) {
+                val chatId = it.arguments?.getString("chatId")
+                chatId?.let {
+                    SingleChatScreen(
+                        navController = navController,
+                        viewModel = vm,
+                        chatId = chatId
+                    )
+                }
+            }
+
             composable(DestinationScreen.StatusList.route) {
                 StatusScreen(navController = navController, viewModel = vm)
             }
