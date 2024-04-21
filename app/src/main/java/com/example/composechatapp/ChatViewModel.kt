@@ -14,6 +14,8 @@ import com.example.composechatapp.data.ChatUser
 import com.example.composechatapp.data.Event
 import com.example.composechatapp.data.MESSAGE
 import com.example.composechatapp.data.Message
+import com.example.composechatapp.data.STATUS
+import com.example.composechatapp.data.Status
 import com.example.composechatapp.data.USER_NODE
 import com.example.composechatapp.data.UserData
 import com.google.firebase.auth.FirebaseAuth
@@ -180,6 +182,7 @@ class ChatViewModel @Inject constructor(
                 val user = documentSnapshot.toObject<UserData>()
                 userData.value = user
                 populateChats() // Call populateChats() after userData is updated
+                populateStatues()
             } else {
                 userData.value = null // No user found
             }
@@ -189,6 +192,8 @@ class ChatViewModel @Inject constructor(
             inProgress.value = false
         }
     }
+
+
 
     fun handleException(exception: Exception? = null, customMessage: String = "") {
         Log.e("Compose Chat App", "Compose Chat App Exception : ", exception)
@@ -349,4 +354,146 @@ class ChatViewModel @Inject constructor(
         chatMessages.value = listOf()
         currentChatMessageListener = null
     }
+
+
+    // Status Screen
+    val statusList = mutableStateOf<List<Status>>(listOf())
+    val inProgressStatus = mutableStateOf(false)
+
+
+    fun uploadStatus(uri: Uri?) {
+        uri?.let { imageUri ->
+            viewModelScope.launch {
+                try {
+                    inProgressStatus.value = true
+                    val imageUrl = uploadImage(imageUri)
+                    createStatus(imageUrl.toString())
+                } catch (e: Exception) {
+                    handleException(e, "Failed to upload status image")
+                } finally {
+                    inProgressStatus.value = false
+                }
+            }
+        } ?: handleException(customMessage = "Image URI is null")
+    }
+
+    private suspend fun createStatus(imageUrl: String) {
+        val userId = userData.value?.userId ?: return // Ensure userId is available
+
+        val newStatus = Status(
+            user = ChatUser(
+                userId = userId,
+                name = userData.value?.name,
+                imageUrl = userData.value?.imageUrl,
+                number = userData.value?.number
+            ),
+            imageUrl = imageUrl,
+            timeStamp = System.currentTimeMillis()
+        )
+
+        db.collection(STATUS).add(newStatus).await()
+    }
+
+    private fun populateStatues() {
+        val twentyFourHoursInMillis = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
+        val currentTime = System.currentTimeMillis()
+        val twentyFourHoursAgo = currentTime - twentyFourHoursInMillis
+
+        val currentConnection = mutableListOf<String>() // Define currentConnection here
+
+        db.collection(CHATS).where(
+            Filter.or(
+                Filter.equalTo("user1.userId", userData.value?.userId),
+                Filter.equalTo("user2.userId", userData.value?.userId)
+            )
+        ).addSnapshotListener { chatSnapshot, error ->
+            if (error != null) {
+                handleException(error)
+                return@addSnapshotListener
+            }
+            chatSnapshot?.let { chats ->
+                currentConnection.clear() // Clear previous connections
+                chats.forEach { chat ->
+                    chat.getString("user1.userId")?.let { currentConnection.add(it) }
+                    chat.getString("user2.userId")?.let { currentConnection.add(it) }
+                }
+
+                db.collection(STATUS)
+                    .whereIn("user.userId", currentConnection) // Filter by user IDs
+                    .whereGreaterThan("timeStamp", twentyFourHoursAgo) // Filter by timestamp
+                    .addSnapshotListener { statusSnapshot, error ->
+                        if (error != null) {
+                            handleException(error)
+                            return@addSnapshotListener
+                        }
+                        statusSnapshot?.let { statuses ->
+                            val updatedStatusList = mutableListOf<Status>()
+                            statuses.forEach { status ->
+                                status.toObject<Status>().let { updatedStatusList.add(it) }
+                            }
+                            statusList.value = updatedStatusList
+                        }
+                    }
+            }
+        }
+    }
+
+
+
+
+
+
+//    private fun populateStatues() {
+//     //   inProgressStatus.value = true
+//
+//        val twentyFourHoursInMillis = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
+//        val currentTime = System.currentTimeMillis()
+//        val twentyFourHoursAgo = currentTime - twentyFourHoursInMillis
+//
+//        db.collection(CHATS).where(
+//            Filter.or(
+//                Filter.equalTo("user1.userId", userData.value?.userId),
+//                Filter.equalTo("user2.userId", userData.value?.userId)
+//            )
+//        ).addSnapshotListener { value, error ->
+//            if (error != null) {
+//                handleException(error)
+//                return@addSnapshotListener
+//            }
+//            if (value != null) {
+//                val currentConnection = arrayListOf(userData.value?.userId)
+//                val chats = value.toObjects<ChatData>()
+//                chats.forEach { chat ->
+//                    if (chat.user1.userId == userData.value?.userId) {
+//                        currentConnection.add(chat.user2.userId)
+//                    } else {
+//                        currentConnection.add(chat.user1.userId)
+//                    }
+//                }
+//
+//                db.collection(STATUS)
+//                    .whereIn("user.userId", currentConnection) // Filter by user IDs
+//                    .whereGreaterThan("timeStamp", twentyFourHoursAgo) // Filter by timestamp
+//                    .addSnapshotListener { value, error ->
+//
+//                        if (error != null) {
+//                            handleException(error)
+//                            return@addSnapshotListener
+//                        }
+//
+//                        if (value != null) {
+//                            statusList.value = value.toObjects()
+//                        }
+//                        // Always hide the progress bar after fetching statuses
+//                      //  inProgressStatus.value = false
+//                    }
+//            }
+//        }
+//    }
+
+
+
+
+
+
 }

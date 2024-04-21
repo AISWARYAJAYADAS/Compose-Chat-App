@@ -45,7 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.composechatapp.ChatViewModel
 import com.example.composechatapp.CommonDivider
-import com.example.composechatapp.CommonImage
+import com.example.composechatapp.CommonProfileImage
 import com.example.composechatapp.CommonProgressBar
 import com.example.composechatapp.DestinationScreen
 import com.example.composechatapp.R
@@ -199,97 +199,6 @@ fun ProfileContent(
 }
 
 
-
-//@Composable
-//fun ProfileContent(
-//    modifier: Modifier,
-//    viewModel: ChatViewModel,
-//    onBack: () -> Unit,
-//    onSave: () -> Unit,
-//    name: String,
-//    number: String,
-//    onNameChange: (String) -> Unit,
-//    onNumberChange: (String) -> Unit,
-//    onLogOut: () -> Unit
-//) {
-//    val imageUrl = viewModel.userData.value?.imageUrl
-//
-//    Column(modifier = modifier.verticalScroll(rememberScrollState())) {
-//        Row(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(8.dp),
-//            horizontalArrangement = Arrangement.SpaceBetween
-//        ) {
-//            Text(
-//                text = "Back",
-//                modifier = Modifier.clickable { onBack.invoke() },
-//                color = Color(0xFF009688),
-//                style = MaterialTheme.typography.bodyMedium
-//            )
-//            Text(
-//                text = "Save",
-//                modifier = Modifier.clickable { onSave.invoke() },
-//                color = Color(0xFF009688),
-//                style = MaterialTheme.typography.bodyMedium
-//            )
-//        }
-//        CommonDivider()
-//        ProfileImage(imageUrl = imageUrl, viewModel = viewModel)
-//        CommonDivider()
-//
-//        OutlinedTextField(
-//            value = name,
-//            onValueChange = { onNameChange(it) },
-//            label = { Text(text = "Name") },
-//            modifier = Modifier
-//                .padding(8.dp)
-//                .fillMaxWidth(),
-//            textStyle = TextStyle(color = Color(0xFF009688)),
-//            singleLine = true,
-////            leadingIcon = {
-////                Icon(Icons.Filled.Person, contentDescription = "Name", modifier = Modifier.size(18.dp))
-////            }
-//        )
-//
-//        OutlinedTextField(
-//            value = number,
-//            onValueChange = { onNumberChange(it) },
-//            label = { Text(text = "Number") },
-//            modifier = Modifier
-//                .padding(8.dp)
-//                .fillMaxWidth(),
-//            textStyle = TextStyle(color = Color(0xFF009688)),
-//            singleLine = true,
-////            leadingIcon = {
-////                Icon(Icons.Filled.Phone, contentDescription = "Number", modifier = Modifier.size(18.dp))
-////            }
-//        )
-//
-//        CommonDivider()
-//        Row(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(16.dp),
-//            horizontalArrangement = Arrangement.Center
-//        ) {
-//
-//            Text(
-//                text = "Log Out",
-//                modifier = Modifier
-//                    .clickable { onLogOut() }
-//                    .padding(8.dp),
-//                color = Color(0xFF009688), // Set text color to 0xFF009688
-//                style = MaterialTheme.typography.bodyLarge,
-//                fontSize = 24.sp,
-//                fontWeight = FontWeight.Bold
-//            )
-//
-//        }
-//    }
-//}
-
-
 @Composable
 fun ProfileImage(imageUrl: String?, viewModel: ChatViewModel) {
     val launcher = rememberLauncherForActivityResult(
@@ -320,7 +229,7 @@ fun ProfileImage(imageUrl: String?, viewModel: ChatViewModel) {
                     .padding(8.dp)
                     .size(150.dp)
             ) {
-                CommonImage(
+                CommonProfileImage(
                     data = imageUrl,
                     placeholder = painterResource(R.drawable.placeholder), // Placeholder image
                     error = painterResource(R.drawable.placeholder), // Error image

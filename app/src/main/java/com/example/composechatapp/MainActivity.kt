@@ -13,6 +13,7 @@ import com.example.composechatapp.Screens.LoginScreen
 import com.example.composechatapp.Screens.ProfileScreen
 import com.example.composechatapp.Screens.SignUpScreen
 import com.example.composechatapp.Screens.SingleChatScreen
+import com.example.composechatapp.Screens.SingleStatusScreen
 import com.example.composechatapp.Screens.StatusScreen
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -78,6 +79,19 @@ class MainActivity : ComponentActivity() {
             composable(DestinationScreen.StatusList.route) {
                 StatusScreen(navController = navController, viewModel = vm)
             }
+
+
+            composable(DestinationScreen.SingleStatus.route) {
+                val userId = it.arguments?.getString("userId")
+                userId?.let {
+                    SingleStatusScreen(
+                        navController = navController,
+                        viewModel = vm,
+                        userId = userId
+                    )
+                }
+            }
+
             composable(DestinationScreen.Profile.route) {
                 ProfileScreen(navController = navController, viewModel = vm)
             }

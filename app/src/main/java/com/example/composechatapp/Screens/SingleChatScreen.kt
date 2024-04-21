@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.composechatapp.ChatViewModel
 import com.example.composechatapp.CommonDivider
-import com.example.composechatapp.CommonImage
+import com.example.composechatapp.CommonProfileImage
 import com.example.composechatapp.R
 import com.example.composechatapp.data.Message
 import java.text.SimpleDateFormat
@@ -164,7 +164,7 @@ fun ChatHeader(
                 .padding(8.dp)
         )
 
-        CommonImage(
+        CommonProfileImage(
             data = imageUrl,
             placeholder = painterResource(id = R.drawable.placeholder),
             error = painterResource(id = R.drawable.placeholder),

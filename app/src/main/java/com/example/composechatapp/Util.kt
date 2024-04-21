@@ -69,12 +69,13 @@ fun CommonDivider() {
             .padding(top = 8.dp, bottom = 8.dp)
     )
 
+
 }
 
 
 
 @Composable
-fun CommonImage(
+fun CommonProfileImage(
     data: String?,
     modifier: Modifier = Modifier,
     placeholder: Painter,
@@ -142,7 +143,7 @@ fun CommonRow(
         verticalAlignment = Alignment.CenterVertically
     ){
 
-        CommonImage(
+        CommonProfileImage(
             data = imageUrl,
             placeholder = painterResource(id = R.drawable.placeholder),
             error = painterResource(id = R.drawable.placeholder),
