@@ -21,7 +21,7 @@ Compose Chat App is a messaging application built using Jetpack Compose and Fire
 
 ![Screenshot 1](/screenshots/signup.png)
 ![Screenshot 2](/screenshots/login.png)
-![Screenshot 3](/screenshots/chatlist%20%20screen.png)
+![Screenshot 3](/screenshots/chatlist%20screen.png)
 ![Screenshot 3](/screenshots/Add%20chat%20number.png)
 ![Screenshot 4](/screenshots/chat1.png)
 ![Screenshot 5](/screenshots/chat2.png)
