@@ -360,7 +360,6 @@ class ChatViewModel @Inject constructor(
     val statusList = mutableStateOf<List<Status>>(listOf())
     val inProgressStatus = mutableStateOf(false)
 
-
     fun uploadStatus(uri: Uri?) {
         uri?.let { imageUri ->
             viewModelScope.launch {
@@ -376,6 +375,7 @@ class ChatViewModel @Inject constructor(
             }
         } ?: handleException(customMessage = "Image URI is null")
     }
+
 
     private suspend fun createStatus(imageUrl: String) {
         val userId = userData.value?.userId ?: return // Ensure userId is available
@@ -394,102 +394,55 @@ class ChatViewModel @Inject constructor(
         db.collection(STATUS).add(newStatus).await()
     }
 
+
     private fun populateStatues() {
+       //inProgressStatus.value = true
+
         val twentyFourHoursInMillis = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
         val currentTime = System.currentTimeMillis()
         val twentyFourHoursAgo = currentTime - twentyFourHoursInMillis
-
-        val currentConnection = mutableListOf<String>() // Define currentConnection here
 
         db.collection(CHATS).where(
             Filter.or(
                 Filter.equalTo("user1.userId", userData.value?.userId),
                 Filter.equalTo("user2.userId", userData.value?.userId)
             )
-        ).addSnapshotListener { chatSnapshot, error ->
+        ).addSnapshotListener { value, error ->
             if (error != null) {
                 handleException(error)
                 return@addSnapshotListener
             }
-            chatSnapshot?.let { chats ->
-                currentConnection.clear() // Clear previous connections
+            if (value != null) {
+                val currentConnection = arrayListOf(userData.value?.userId)
+                val chats = value.toObjects<ChatData>()
                 chats.forEach { chat ->
-                    chat.getString("user1.userId")?.let { currentConnection.add(it) }
-                    chat.getString("user2.userId")?.let { currentConnection.add(it) }
+                    if (chat.user1.userId == userData.value?.userId) {
+                        currentConnection.add(chat.user2.userId)
+                    } else {
+                        currentConnection.add(chat.user1.userId)
+                    }
                 }
 
                 db.collection(STATUS)
                     .whereIn("user.userId", currentConnection) // Filter by user IDs
                     .whereGreaterThan("timeStamp", twentyFourHoursAgo) // Filter by timestamp
-                    .addSnapshotListener { statusSnapshot, error ->
+                    .addSnapshotListener { value, error ->
+
                         if (error != null) {
                             handleException(error)
                             return@addSnapshotListener
                         }
-                        statusSnapshot?.let { statuses ->
-                            val updatedStatusList = mutableListOf<Status>()
-                            statuses.forEach { status ->
-                                status.toObject<Status>().let { updatedStatusList.add(it) }
-                            }
-                            statusList.value = updatedStatusList
+
+                        if (value != null) {
+                            statusList.value = value.toObjects()
+                           // inProgressStatus.value = false
                         }
+                        // Always hide the progress bar after fetching statuses
+                      //  inProgressStatus.value = false
                     }
             }
         }
     }
-
-
-
-
-
-
-//    private fun populateStatues() {
-//     //   inProgressStatus.value = true
-//
-//        val twentyFourHoursInMillis = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
-//        val currentTime = System.currentTimeMillis()
-//        val twentyFourHoursAgo = currentTime - twentyFourHoursInMillis
-//
-//        db.collection(CHATS).where(
-//            Filter.or(
-//                Filter.equalTo("user1.userId", userData.value?.userId),
-//                Filter.equalTo("user2.userId", userData.value?.userId)
-//            )
-//        ).addSnapshotListener { value, error ->
-//            if (error != null) {
-//                handleException(error)
-//                return@addSnapshotListener
-//            }
-//            if (value != null) {
-//                val currentConnection = arrayListOf(userData.value?.userId)
-//                val chats = value.toObjects<ChatData>()
-//                chats.forEach { chat ->
-//                    if (chat.user1.userId == userData.value?.userId) {
-//                        currentConnection.add(chat.user2.userId)
-//                    } else {
-//                        currentConnection.add(chat.user1.userId)
-//                    }
-//                }
-//
-//                db.collection(STATUS)
-//                    .whereIn("user.userId", currentConnection) // Filter by user IDs
-//                    .whereGreaterThan("timeStamp", twentyFourHoursAgo) // Filter by timestamp
-//                    .addSnapshotListener { value, error ->
-//
-//                        if (error != null) {
-//                            handleException(error)
-//                            return@addSnapshotListener
-//                        }
-//
-//                        if (value != null) {
-//                            statusList.value = value.toObjects()
-//                        }
-//                        // Always hide the progress bar after fetching statuses
-//                      //  inProgressStatus.value = false
-//                    }
-//            }
-//        }
-//    }
 
 
 
