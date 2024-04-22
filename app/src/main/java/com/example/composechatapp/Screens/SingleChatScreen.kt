@@ -109,7 +109,6 @@ fun ReplyBox(
     onReplyChange: (String) -> Unit,
     onSendReply: () -> Unit
 ) {
-
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -117,30 +116,28 @@ fun ReplyBox(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-
-            // TextField(value = reply, onValueChange = onReplyChange, maxLines = 3)
-
             OutlinedTextField(
                 value = reply,
                 onValueChange = onReplyChange,
                 maxLines = 3,
+                modifier = Modifier.weight(1f),
+                placeholder = { Text(text = "Message")}
             )
-
             Button(
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF009688)),
                 onClick = { onSendReply.invoke() },
+                modifier = Modifier.padding(start = 8.dp)
             ) {
                 Text(text = "Send")
             }
-
         }
-
     }
-
 }
+
 
 @Composable
 fun ChatHeader(
